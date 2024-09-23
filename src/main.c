@@ -1,9 +1,9 @@
+#include <mpi.h>
+#include <time.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <semaphore.h>
-#include <time.h>
-#include <mpi.h>
-#include <pthread.h>
 #include "../include/queue.h"
 #include "../include/clock.h"
 
@@ -27,14 +27,14 @@ int main(int argc, char* argv[])
   pthread_cond_init(&queueNotFull, NULL);
   pthread_cond_init(&queueNotEmpty, NULL);
 
-  pthread_t consumers[THREAD_NUM];
-  pthread_t producers[THREAD_NUM];
+  pthread_t consumers[PROC_NUM];
+  pthread_t producers[PROC_NUM];
 
-  Task *consumers_tasks = (Task*) calloc(THREAD_NUM, sizeof(Task));
-  Task *producers_tasks = (Task*) calloc(THREAD_NUM, sizeof(Task));
+  Task *consumers_tasks = (Task*) calloc(PROC_NUM, sizeof(Task));
+  Task *producers_tasks = (Task*) calloc(PROC_NUM, sizeof(Task));
 
 
-  for (int i = 0; i < THREAD_NUM; i++)
+  for (int i = 0; i < PROC_NUM; i++)
   {  
     consumers_tasks[i] = (Task) {i, q, {0}};
     if (pthread_create(&consumers[i], NULL, &consumerBehavior, (void*) &consumers_tasks[i]) != 0) 
@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
       perror("Failed to create the thread");
     }  
   }
-  for (int i = 0; i < THREAD_NUM; i++)
+  for (int i = 0; i < PROC_NUM; i++)
   {  
     producers_tasks[i] = (Task) {i, q, {0}};
     if (pthread_create(&producers[i], NULL, &producerBehavior, (void*) &producers_tasks[i]) != 0)
@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
   srand(time(NULL));
   for (int i = 0; i < 500; i++);
 
-  for (int i = 0; i < THREAD_NUM; i++)
+  for (int i = 0; i < PROC_NUM; i++)
   {  
     if (pthread_join(consumers[i], NULL) != 0)
     {
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
     }  
   }
   free(consumers_tasks);
-  for (int i = 0; i < THREAD_NUM; i++)
+  for (int i = 0; i < PROC_NUM; i++)
   {  
     if (pthread_join(producers[i], NULL) != 0) 
     {
