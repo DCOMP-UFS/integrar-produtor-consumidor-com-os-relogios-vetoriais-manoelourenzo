@@ -6,8 +6,14 @@
 
 #define BUFFER_SIZE 256
 
+typedef struct data {
+  int rank_sender;
+  int rank_receiver;
+  Clock c;
+} data;
+
 typedef struct queue_t {
-  Clock queue[BUFFER_SIZE];
+  data queue[BUFFER_SIZE];
   int head;
   int tail;
   int size;
@@ -15,23 +21,28 @@ typedef struct queue_t {
 } queue_t;
 
 queue_t* init_queue();
+
 int is_empty(queue_t* q);
+
 int is_full(queue_t* q);
+
 void enqueue(
   queue_t* q,
-  Clock c,
+  data d,
   pthread_mutex_t* mutex,
   pthread_cond_t* queueNotFull,
   pthread_cond_t* queueNotEmpty
 );
-void dequeue(
+
+data dequeue(
   queue_t* q,
-  Clock c,
   pthread_mutex_t* mutex,
   pthread_cond_t* queueNotFull,
   pthread_cond_t* queueNotEmpty
 );
+
 void* consumerBehavior(void *consumer_args);
+
 void* producerBehavior(void *producer_args);
 
 #endif // !QUEUE

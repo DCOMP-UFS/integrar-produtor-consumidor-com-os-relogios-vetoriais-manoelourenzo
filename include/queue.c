@@ -6,7 +6,7 @@ queue_t* init_queue() {
   q->size = 0;
   q->head = 0;
   q->tail = -1;
-  q-> capacity = BUFFER_SIZE;
+  q->capacity = BUFFER_SIZE;
   return q;
 }
 
@@ -20,7 +20,7 @@ int is_full(queue_t* q) {
 
 void enqueue(
   queue_t* q,
-  Clock c,
+  data d,
   pthread_mutex_t* mutex,
   pthread_cond_t* queueNotFull,
   pthread_cond_t* queueNotEmpty
@@ -32,16 +32,15 @@ void enqueue(
   }
 
   q->tail = (q->tail + 1) % q->capacity;
-  q->queue[q->tail] = c;
+  q->queue[q->tail] = d;
   q->size++;
 
   pthread_mutex_unlock(mutex);
   pthread_cond_signal(queueNotEmpty);
 }
 
-void dequeue(
+data dequeue(
   queue_t* q,
-  Clock c,
   pthread_mutex_t* mutex,
   pthread_cond_t* queueNotFull,
   pthread_cond_t* queueNotEmpty
@@ -51,12 +50,14 @@ void dequeue(
     pthread_cond_wait(queueNotEmpty, mutex);
   }
 
-  c = q->queue[q->head];
+  data d = q->queue[q->head];
   q->head = (q->head + 1) % q->capacity;
   q->size--;
 
-  print_clock(c);
+  print_clock(d.c);
 
   pthread_mutex_unlock(mutex);
   pthread_cond_signal(queueNotFull);
+
+  return d;
 }
