@@ -1,10 +1,10 @@
 #ifndef CLOCK
 #define CLOCK
 
-#define THREAD_NUM 3
+#define PROC_NUM 3
 
 typedef struct Clock {
-  int c[THREAD_NUM];
+  int c[PROC_NUM];
 } Clock;
 
 void print_clock(Clock c);
