@@ -1,10 +1,13 @@
-#include "threads.h"
-#include "queue.h"
+#include <mpi.h>
+#include <stdio.h>
 #include <pthread.h>
+#include "threads.h"
+#include "clock.h"
+#include "queue.h"
 
 void *handle_receiver(void *arg) 
 {
-  receiver_args args = *((receiver_args*) arg);
+  args_t* args = (args_t*)arg;
 
   while (1) 
   {
@@ -20,28 +23,29 @@ void *handle_receiver(void *arg)
       MPI_STATUS_IGNORE
     );
 
+    printf("%d received from %d\n", d.rank_receiver, d.rank_sender);
     // put the received clock in the queue
     enqueue(
-      args.q,
+      args->q,
       d,
-      args.t.mutex,
-      args.t.queueNotFull,
-      args.t.queueNotEmpty
+      args->t.mutex,
+      args->t.queueNotFull,
+      args->t.queueNotEmpty
     );
   }
 }
 
 void *handle_sender(void *arg)
 {
-  sender_args args = *((sender_args*)arg);
+  args_t* args = (args_t*)arg;
   while (1) 
   {
     // consume clock to be sended from queue 
     data d = dequeue(
-      args.q,
-      args.t.mutex,
-      args.t.queueNotEmpty,
-      args.t.queueNotFull
+      args->q,
+      args->t.mutex,
+      args->t.queueNotEmpty,
+      args->t.queueNotFull
     );
 
     // mpi send
@@ -56,23 +60,44 @@ void *handle_sender(void *arg)
   }
 }
 
-void *handle_main_thread(void *arg) 
+void *handle_main_thread0(void *arg) 
 {
-  main_args args = *((main_args*)arg);
-
-  //exemplo de chamada da função receive
-  receive(0, args.pid, args.input, args.c, args.t);
-
-  //exemplo de chamada da função send
-  send(args.pid, 0, args.output, args.c, args.t);
-
+  main_args* args = (main_args*)arg;
   //exemplo da chamada da função event
-  event(args.pid, args.c, args.t);
+  event(args->pid, args->c, args->t);
+  send(args->pid, 1, args->output, args->c, args->t);
+  receive(args->pid, args->input, args->c, args->t);
+  send(args->pid, 2, args->output, args->c, args->t);
+  receive(args->pid, args->input, args->c, args->t);
+  send(args->pid, 1, args->output, args->c, args->t);
+  event(args->pid, args->c, args->t);
+  print_clock(*args->c);
 }
 
+void *handle_main_thread1(void *arg) 
+{
+  main_args* args = (main_args*)arg;
+  send(args->pid, 0, args->output, args->c, args->t);
+  receive(args->pid, args->input, args->c, args->t);
+  receive(args->pid, args->input, args->c, args->t);
+  print_clock(*args->c);
+}
 
-void receive(int pid_sender, int pid_receiver, queue_t* input, Clock* c, thread_dependencies t)
-{  
+void *handle_main_thread2(void *arg) 
+{
+  main_args* args = (main_args*)arg;
+  event(args->pid, args->c, args->t);
+  send(args->pid, 0, args->output, args->c, args->t);
+  receive(args->pid, args->input, args->c, args->t);
+  print_clock(*args->c);
+}
+
+void receive(
+  int pid_receiver,
+  queue_t* input,
+  Clock* c,
+  thread_dependencies t
+){  
   // atualiza o clock atual
   pthread_mutex_lock(t.mutex);
   c->c[pid_receiver]++;
@@ -85,6 +110,7 @@ void receive(int pid_sender, int pid_receiver, queue_t* input, Clock* c, thread_
     t.queueNotFull,
     t.queueNotEmpty
   );
+  printf("%d received from %d\n", d.rank_receiver, d.rank_sender);
 
   // update the clock
   for (int i = 0; i < 3; i++)
@@ -96,8 +122,14 @@ void receive(int pid_sender, int pid_receiver, queue_t* input, Clock* c, thread_
   }
 }
 
-void send(int pid_sender, int pid_receiver, queue_t* output, Clock* c, thread_dependencies t)
-{
+void send(
+  int pid_sender,
+  int pid_receiver,
+  queue_t* output,
+  Clock* c,
+  thread_dependencies t
+){
+  printf("%d sent to %d\n", pid_sender, pid_receiver);
   // atualiza o clock atual
   pthread_mutex_lock(t.mutex);
   c->c[pid_sender]++;
@@ -122,8 +154,10 @@ void send(int pid_sender, int pid_receiver, queue_t* output, Clock* c, thread_de
 
 void event(int pid, Clock* c, thread_dependencies t)
 {
+  printf("%d event\n", pid);
   // atualiza o clock atual
   pthread_mutex_lock(t.mutex);
   c->c[pid]++;
   pthread_mutex_unlock(t.mutex);
 }
+

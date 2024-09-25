@@ -10,10 +10,10 @@ typedef struct thread_dependencies {
   pthread_cond_t* queueNotEmpty;
 } thread_dependencies;
 
-typedef struct sender_args {
+typedef struct args_t {
   queue_t* q;
   thread_dependencies t;
-} sender_args;
+} args_t;
 
 typedef struct main_args {
   int pid;
@@ -23,17 +23,27 @@ typedef struct main_args {
   thread_dependencies t;
 } main_args;
 
-typedef struct receiver_args {
-  queue_t* q;
-  thread_dependencies t;
-} receiver_args;
-
 void *handle_receiver(void *arg);
-void *handle_main_thread(void *arg);
+void *handle_main_thread0(void *arg);
+void *handle_main_thread1(void *arg);
+void *handle_main_thread2(void *arg);
 void *handle_sender(void *arg);
 
-void send(int pid_sender, int pid_receiver, queue_t* output, Clock* c, thread_dependencies t);
-void receive(int pid_sender, int pid_receiver, queue_t* input, Clock* c, thread_dependencies t);
+void send(
+    int pid_sender,
+    int pid_receiver,
+    queue_t* output,
+    Clock* c,
+    thread_dependencies t
+);
+
+void receive(
+    int pid_receiver,
+    queue_t* input,
+    Clock* c,
+    thread_dependencies t
+);
+
 void event(int pid, Clock* c, thread_dependencies t);
 
 #endif // !THREADS

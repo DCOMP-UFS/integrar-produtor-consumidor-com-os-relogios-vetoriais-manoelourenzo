@@ -25,8 +25,6 @@ void enqueue(
   pthread_cond_t* queueNotFull,
   pthread_cond_t* queueNotEmpty
 ){
-  pthread_mutex_lock(mutex);
-
   while (is_full(q)) {
     pthread_cond_wait(queueNotFull, mutex);
   }
@@ -35,7 +33,6 @@ void enqueue(
   q->queue[q->tail] = d;
   q->size++;
 
-  pthread_mutex_unlock(mutex);
   pthread_cond_signal(queueNotEmpty);
 }
 
@@ -45,7 +42,6 @@ data dequeue(
   pthread_cond_t* queueNotFull,
   pthread_cond_t* queueNotEmpty
 ) {
-  pthread_mutex_lock(mutex);
   while (is_empty(q)) {
     pthread_cond_wait(queueNotEmpty, mutex);
   }
@@ -56,8 +52,13 @@ data dequeue(
 
   print_clock(d.c);
 
-  pthread_mutex_unlock(mutex);
   pthread_cond_signal(queueNotFull);
 
   return d;
+}
+
+void free_queue(queue_t* q)
+{
+  free(q->queue);
+  free(q);
 }

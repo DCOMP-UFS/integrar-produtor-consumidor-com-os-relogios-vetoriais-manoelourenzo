@@ -41,8 +41,6 @@ data dequeue(
   pthread_cond_t* queueNotEmpty
 );
 
-void* consumerBehavior(void *consumer_args);
-
-void* producerBehavior(void *producer_args);
+void free_queue(queue_t* q);
 
 #endif // !QUEUE

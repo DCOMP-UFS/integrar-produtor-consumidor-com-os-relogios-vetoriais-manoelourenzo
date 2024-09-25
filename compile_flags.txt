@@ -1,0 +1,6 @@
+-I/usr/include/openmpi-x86_64
+-L/usr/lib64/openmpi/lib
+-Wl,-rpath
+-Wl,/usr/lib64/openmpi/lib
+-Wl,--enable-new-dtags
+-lmpi
