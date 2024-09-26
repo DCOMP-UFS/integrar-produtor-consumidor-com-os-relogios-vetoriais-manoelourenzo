@@ -65,11 +65,11 @@ void *handle_main_thread0(void *arg)
   main_args* args = (main_args*)arg;
   //exemplo da chamada da função event
   event(args->pid, args->c, args->t);
-  send(args->pid, 1, args->output, args->c, args->t);
+  Send(args->pid, 1, args->output, args->c, args->t);
   receive(args->pid, args->input, args->c, args->t);
-  send(args->pid, 2, args->output, args->c, args->t);
+  Send(args->pid, 2, args->output, args->c, args->t);
   receive(args->pid, args->input, args->c, args->t);
-  send(args->pid, 1, args->output, args->c, args->t);
+  Send(args->pid, 1, args->output, args->c, args->t);
   event(args->pid, args->c, args->t);
   print_clock(*args->c);
 }
@@ -77,7 +77,7 @@ void *handle_main_thread0(void *arg)
 void *handle_main_thread1(void *arg) 
 {
   main_args* args = (main_args*)arg;
-  send(args->pid, 0, args->output, args->c, args->t);
+  Send(args->pid, 0, args->output, args->c, args->t);
   receive(args->pid, args->input, args->c, args->t);
   receive(args->pid, args->input, args->c, args->t);
   print_clock(*args->c);
@@ -87,7 +87,7 @@ void *handle_main_thread2(void *arg)
 {
   main_args* args = (main_args*)arg;
   event(args->pid, args->c, args->t);
-  send(args->pid, 0, args->output, args->c, args->t);
+  Send(args->pid, 0, args->output, args->c, args->t);
   receive(args->pid, args->input, args->c, args->t);
   print_clock(*args->c);
 }
@@ -122,7 +122,7 @@ void receive(
   }
 }
 
-void send(
+void Send(
   int pid_sender,
   int pid_receiver,
   queue_t* output,

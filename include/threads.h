@@ -29,7 +29,7 @@ void *handle_main_thread1(void *arg);
 void *handle_main_thread2(void *arg);
 void *handle_sender(void *arg);
 
-void send(
+void Send(
     int pid_sender,
     int pid_receiver,
     queue_t* output,
