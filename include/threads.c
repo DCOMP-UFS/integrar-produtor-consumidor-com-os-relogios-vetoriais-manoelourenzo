@@ -18,12 +18,11 @@ void *handle_receiver(void *arg)
       sizeof(d),
       MPI_BYTE,
       MPI_ANY_SOURCE,
-      NULL,
+      0,
       MPI_COMM_WORLD,
       MPI_STATUS_IGNORE
     );
 
-    printf("%d received from %d\n", d.rank_receiver, d.rank_sender);
     // put the received clock in the queue
     enqueue(
       args->q,
@@ -33,6 +32,7 @@ void *handle_receiver(void *arg)
       args->t.queueNotEmpty
     );
   }
+  return NULL;
 }
 
 void *handle_sender(void *arg)
@@ -58,6 +58,7 @@ void *handle_sender(void *arg)
       MPI_COMM_WORLD
     );
   }
+  return NULL;
 }
 
 void *handle_main_thread0(void *arg) 
@@ -71,7 +72,9 @@ void *handle_main_thread0(void *arg)
   receive(args->pid, args->input, args->c, args->t);
   Send(args->pid, 1, args->output, args->c, args->t);
   event(args->pid, args->c, args->t);
+  printf("process %d: final ", args->pid);
   print_clock(*args->c);
+  return NULL;
 }
 
 void *handle_main_thread1(void *arg) 
@@ -80,7 +83,9 @@ void *handle_main_thread1(void *arg)
   Send(args->pid, 0, args->output, args->c, args->t);
   receive(args->pid, args->input, args->c, args->t);
   receive(args->pid, args->input, args->c, args->t);
+  printf("process %d: final ", args->pid);
   print_clock(*args->c);
+  return NULL;
 }
 
 void *handle_main_thread2(void *arg) 
@@ -89,7 +94,9 @@ void *handle_main_thread2(void *arg)
   event(args->pid, args->c, args->t);
   Send(args->pid, 0, args->output, args->c, args->t);
   receive(args->pid, args->input, args->c, args->t);
+  printf("process %d: final ", args->pid);
   print_clock(*args->c);
+  return NULL;
 }
 
 void receive(
@@ -110,7 +117,6 @@ void receive(
     t.queueNotFull,
     t.queueNotEmpty
   );
-  printf("%d received from %d\n", d.rank_receiver, d.rank_sender);
 
   // update the clock
   for (int i = 0; i < 3; i++)
@@ -120,6 +126,8 @@ void receive(
       c->c[i] = d.c.c[i];
     }
   }
+  printf("process %d: received from %d and has the ", d.rank_receiver, d.rank_sender);
+  print_clock(*c);
 }
 
 void Send(
@@ -129,11 +137,13 @@ void Send(
   Clock* c,
   thread_dependencies t
 ){
-  printf("%d sent to %d\n", pid_sender, pid_receiver);
   // atualiza o clock atual
   pthread_mutex_lock(t.mutex);
   c->c[pid_sender]++;
   pthread_mutex_unlock(t.mutex);
+
+  printf("process %d: sent to %d with ", pid_sender, pid_receiver);
+  print_clock(*c);
 
   // cria dado a ser inserido na fila intermediária
   data d = {
@@ -154,10 +164,12 @@ void Send(
 
 void event(int pid, Clock* c, thread_dependencies t)
 {
-  printf("%d event\n", pid);
   // atualiza o clock atual
   pthread_mutex_lock(t.mutex);
   c->c[pid]++;
   pthread_mutex_unlock(t.mutex);
+
+  printf("process %d: registered an event and has ", pid);
+  print_clock(*c);
 }
 
