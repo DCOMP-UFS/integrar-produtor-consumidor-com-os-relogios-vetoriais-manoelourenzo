@@ -20,11 +20,14 @@ int is_full(queue_t* q) {
 
 void enqueue(
   queue_t* q,
+
   data d,
   pthread_mutex_t* mutex,
   pthread_cond_t* queueNotFull,
-  pthread_cond_t* queueNotEmpty
-){
+  pthread_cond_t* queueNotEmpty)
+  {
+
+  
   while (is_full(q)) {
     pthread_cond_wait(queueNotFull, mutex);
   }
