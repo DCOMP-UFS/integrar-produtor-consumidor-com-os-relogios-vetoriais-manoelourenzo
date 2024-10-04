@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "clock.h"
+#include <clock.h>
 
 void print_clock(Clock c) {
   printf("clock: ( %i", c.c[0]);

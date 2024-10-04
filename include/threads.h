@@ -1,8 +1,8 @@
 #ifndef THREADS
 #define THREADS
 
-#include "clock.h"
-#include "queue.h"
+#include <clock.h>
+#include <queue.h>
 
 typedef struct thread_dependencies {
   pthread_mutex_t* mutex;
@@ -20,7 +20,8 @@ typedef struct main_args {
   queue_t* input;
   queue_t* output;
   Clock* c;
-  thread_dependencies t;
+  thread_dependencies input_t;
+  thread_dependencies output_t;
 } main_args;
 
 void *handle_receiver(void *arg);
@@ -37,13 +38,13 @@ void Send(
     thread_dependencies t
 );
 
-void receive(
+void Receive(
     int pid_receiver,
     queue_t* input,
     Clock* c,
     thread_dependencies t
 );
 
-void event(int pid, Clock* c, thread_dependencies t);
+void Event(int pid, Clock* c);
 
 #endif // !THREADS

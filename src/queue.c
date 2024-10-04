@@ -1,5 +1,6 @@
+#include <pthread.h>
 #include <stdlib.h>
-#include "queue.h"
+#include <queue.h>
 
 queue_t* init_queue() {
   queue_t* q = (queue_t*) malloc(sizeof(queue_t));
@@ -25,6 +26,7 @@ void enqueue(
   pthread_cond_t* queueNotFull,
   pthread_cond_t* queueNotEmpty
 ){
+  pthread_mutex_lock(mutex);
   while (is_full(q)) {
     pthread_cond_wait(queueNotFull, mutex);
   }
@@ -34,6 +36,7 @@ void enqueue(
   q->size++;
 
   pthread_cond_signal(queueNotEmpty);
+  pthread_mutex_unlock(mutex);
 }
 
 data dequeue(
@@ -42,6 +45,7 @@ data dequeue(
   pthread_cond_t* queueNotFull,
   pthread_cond_t* queueNotEmpty
 ) {
+  pthread_mutex_lock(mutex);
   while (is_empty(q)) {
     pthread_cond_wait(queueNotEmpty, mutex);
   }
@@ -53,7 +57,7 @@ data dequeue(
   print_clock(d.c);
 
   pthread_cond_signal(queueNotFull);
-
+  pthread_mutex_unlock(mutex);
   return d;
 }
 

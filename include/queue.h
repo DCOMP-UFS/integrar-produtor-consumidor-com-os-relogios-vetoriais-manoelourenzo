@@ -2,7 +2,7 @@
 #define QUEUE
 
 #include <pthread.h>
-#include "clock.h"
+#include <clock.h>
 
 #define BUFFER_SIZE 256
 
